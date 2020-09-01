@@ -1,6 +1,14 @@
 import json
 import shutil
 
+CONFIG_FILE = 'config.json'
+
+FREQ = 0
+MIN_MEM_FREE = 1
+RM_KOEF = 2
+
+keys = ['frequency', 'min_free_space_gb', 'file_remove_koef']
+
 
 def memory_enough():
     total, used, free = shutil.disk_usage("/")
@@ -16,25 +24,36 @@ def memory_enough():
 
 
 def read_config():
-    key = "frequency"
-    ret = None
+    j_dict = None
     try:
-        with open('config.json') as f:
+        with open(CONFIG_FILE) as f:
             j_dict = json.load(f)
-            if j_dict is not None and key in j_dict:
-                ret = j_dict[key]
     except Exception as e:
         print(e)
-    return ret
+    return j_dict
 
 
-def config_validate(frequency):
+def format_config(j_dict):
+    params = {}
+    if j_dict is None:
+        print("fail to read configuration file")
+        return None
+    for key in keys:
+        if key not in j_dict:
+            print('key "{}" missed in configuration file'.format(key))
+            return None
+        val = validate_value(j_dict[key])
+        if val is None:
+            print('{} value couldn\'t be converted to float'.format(key))
+            return None
+        params[key] = val
+    return params
+
+
+def validate_value(val):
     ret = None
-    if frequency is None:
-        print("couldn't read frequency from configuration file")
-        return ret
     try:
-        ret = float(frequency)
+        ret = float(val)
     except Exception as e:
         print(e)
     finally:
@@ -42,13 +61,13 @@ def config_validate(frequency):
 
 
 def main():
+    config = format_config(read_config())
+    if config is None:
+        return
+    print("configuration: {}".format(config))
+
     if not memory_enough():
         print("not enough free space")
-    freq = config_validate(read_config())
-    if freq is None:
-        print("FAILED")
-        return
-    print("Frequecy: %f" % freq)
 
 
 if __name__ == "__main__":
