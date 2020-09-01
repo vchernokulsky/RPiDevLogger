@@ -1,6 +1,8 @@
 import json
 import shutil
 
+from file_manager import FileManager
+
 CONFIG_FILE = 'config.json'
 
 FREQ = 0
@@ -66,8 +68,12 @@ def main():
         return
     print("configuration: {}".format(config))
 
-    if not memory_enough():
-        print("not enough free space")
+    fm = FileManager(config[keys[MIN_MEM_FREE]], config[keys[RM_KOEF]])
+    if not fm.check_folders():
+        return
+
+    if not fm.check_memory():
+        return
 
 
 if __name__ == "__main__":
