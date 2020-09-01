@@ -37,7 +37,7 @@ class FileManager:
         print("Used: %d GiB" % (used // (2 ** 30)))
         print("Free: %d GiB" % (free // (2 ** 30)))
 
-        if free < self.min_memory:
+        if free // (2 ** 30) < self.min_memory:
             return False
         else:
             return True
