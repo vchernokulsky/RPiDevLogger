@@ -87,12 +87,12 @@ def main():
         return
     logger.info("Current session id: {}".format(session_id))
 
-    # =========== GET AUDIO FILES ==================
-    audio_list = fm.get_file_list(fm.AUDIO_FILE, session_id)
-    if len(audio_list) <= 0:
-        logger.error("cannot create audio files")
-        return
-    logger.info("audio will be written into files : {}".format(audio_list))
+    # # =========== GET AUDIO FILES ==================
+    # audio_list = fm.get_file_list(fm.AUDIO_FILE, session_id)
+    # if len(audio_list) <= 0:
+    #     logger.error("cannot create audio files")
+    #     return
+    # logger.info("audio will be written into files : {}".format(audio_list))
 
     # # =========== AUDIO SETUP ====================
     # audio = UsbAudio(logger, audio_list)
@@ -104,8 +104,14 @@ def main():
     # audio.start()
     # audio.stop()
 
-    # ============== GPS SETUP=============
+    # =========== GET GPS FILES ====================
     gps_list = fm.get_file_list(fm.GPS_FILE, session_id)
+    if len(gps_list) <= 0:
+        logger.error("cannot create gps files")
+        return
+    logger.info("gps data will be written into files : {}".format(gps_list))
+
+    # ============== GPS SETUP=============
     gps = GpsReader(logger, gps_list)
     if not gps.set_up():
         logger.error("couldn't setup gps")
@@ -114,7 +120,6 @@ def main():
     # ============ GPS RECORD =============
     gps.start()
     gps.stop()
-
 
 
 if __name__ == "__main__":
