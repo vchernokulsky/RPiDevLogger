@@ -4,7 +4,10 @@ import queue
 import wave
 
 form_1 = pyaudio.paInt16  # 16-bit resolution
-chunk = 4096  # 2^12 samples for buffer
+chunk = 1000  # 2^12 samples for buffer
+
+CHANNELS = None
+RATE = None
 
 
 class UsbAudio:
@@ -15,7 +18,14 @@ class UsbAudio:
         self.q = queue.Queue()
         self.audio = pyaudio.PyAudio()  # create pyaudio instantiation
         self.dev_index, self.chans, self.samp_rate = self.__microphone_setup()
-
+        self.logger.info("Microphone default values")
+        self.logger.info("index:{}\tchans:{}\tsample_rate:{}".format(self.dev_index, self.chans, self.samp_rate))
+        if CHANNELS is not None:
+            self.chans = CHANNELS
+        if RATE is not None:
+            self.samp_rate = RATE
+        self.logger.info("used values")
+        self.logger.info("index:{}\tchans:{}\tsample_rate:{}".format(self.dev_index, self.chans, self.samp_rate))
         self.wave_list = []
         self.stream = None
 
@@ -93,9 +103,13 @@ class UsbAudio:
         if len(self.wave_list) < 1:
             self.logger.error("couldn't create waves to write audio")
             return False
-        self.stream = self.audio.open(format=form_1, rate=self.samp_rate, channels=self.chans,
-                                      input_device_index=self.dev_index, input=True,
-                                      frames_per_buffer=chunk, stream_callback=self.callback)
+        try:
+            self.stream = self.audio.open(format=form_1, rate=self.samp_rate, channels=self.chans,
+                                          input_device_index=self.dev_index, input=True,
+                                          frames_per_buffer=chunk, stream_callback=self.callback)
+        except (ValueError, IOError) as err:
+            self.logger.exception(err)
+            return False
         return True
 
     def start(self):

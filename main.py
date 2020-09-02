@@ -1,6 +1,8 @@
 import json
 import logging
 import logging.handlers
+import time
+from multiprocessing import Process
 
 from file_manager import FileManager
 from gps_reader import GpsReader
@@ -87,22 +89,18 @@ def main():
         return
     logger.info("Current session id: {}".format(session_id))
 
-    # # =========== GET AUDIO FILES ==================
-    # audio_list = fm.get_file_list(fm.AUDIO_FILE, session_id)
-    # if len(audio_list) <= 0:
-    #     logger.error("cannot create audio files")
-    #     return
-    # logger.info("audio will be written into files : {}".format(audio_list))
+    # =========== GET AUDIO FILES ==================
+    audio_list = fm.get_file_list(fm.AUDIO_FILE, session_id)
+    if len(audio_list) <= 0:
+        logger.error("cannot create audio files")
+        return
+    logger.info("audio will be written into files : {}".format(audio_list))
 
-    # # =========== AUDIO SETUP ====================
-    # audio = UsbAudio(logger, audio_list)
-    # if not audio.set_up():
-    #     logger.error("couldn't setup audio device")
-    #     return
-    #
-    # # ============ START RECORDING ===============
-    # audio.start()
-    # audio.stop()
+    # =========== AUDIO SETUP ====================
+    audio = UsbAudio(logger, audio_list)
+    if not audio.set_up():
+        logger.error("couldn't setup audio device")
+        return
 
     # =========== GET GPS FILES ====================
     gps_list = fm.get_file_list(fm.GPS_FILE, session_id)
@@ -111,14 +109,32 @@ def main():
         return
     logger.info("gps data will be written into files : {}".format(gps_list))
 
-    # ============== GPS SETUP=============
+    # ============== GPS SETUP =============
     gps = GpsReader(logger, gps_list)
     if not gps.set_up():
         logger.error("couldn't setup gps")
         return
 
+    # ============ START RECORDING ===============
+    audio_proc = Process(target=audio.start, args=())
+    audio_proc.start()
+
     # ============ GPS RECORD =============
-    gps.start()
+    gps_proc = Process(target=gps.start, args=())
+    gps_proc.start()
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("finished")
+    except Exception as e:
+        logger.exception(e)
+
+    audio_proc.join()
+    gps_proc.join()
+
+    audio.stop()
     gps.stop()
 
 
