@@ -11,6 +11,9 @@ def get_free_memory_gb():
 class FileManager:
     def __init__(self, logger, min_mem, rm_koef):
         self.logger = logger
+        self.LOGIC_FILE = 0
+        self.GPS_FILE = 1
+        self.AUDIO_FILE = 2
         self.min_memory = min_mem
         self.rm_koef = rm_koef
         self.directories = ['/home/pi/data', '/home/pi/data1']
@@ -114,7 +117,9 @@ class FileManager:
                 self.logger.error("no free session number")
         return session_id
 
-
-
-
-
+    def get_file_list(self, file_type, session_id):
+        file_list = []
+        for dir in self.directories:
+            file_name = path.join(dir, self.file_template[file_type].format(session_id))
+            file_list.append(file_name)
+        return file_list
