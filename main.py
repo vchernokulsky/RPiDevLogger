@@ -78,6 +78,11 @@ def main():
     if not fm.check_memory():
         return
 
+    session_id = fm.find_session_id()
+    if session_id < 0:
+        return
+    logger.info("Current session id: {}".format(session_id))
+
 
 if __name__ == "__main__":
     main()
