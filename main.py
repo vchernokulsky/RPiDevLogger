@@ -3,6 +3,7 @@ import logging
 import logging.handlers
 
 from file_manager import FileManager
+from gps_reader import GpsReader
 from usb_audio import UsbAudio
 
 CONFIG_FILE = 'config.json'
@@ -93,14 +94,27 @@ def main():
         return
     logger.info("audio will be written into files : {}".format(audio_list))
 
-    # =========== AUDIO SETUP ====================
-    audio = UsbAudio(logger, audio_list)
-    if not audio.set_up():
-        logger.error("couldn't setup audio device")
+    # # =========== AUDIO SETUP ====================
+    # audio = UsbAudio(logger, audio_list)
+    # if not audio.set_up():
+    #     logger.error("couldn't setup audio device")
+    #     return
+    #
+    # # ============ START RECORDING ===============
+    # audio.start()
+    # audio.stop()
+
+    # ============== GPS SETUP=============
+    gps_list = fm.get_file_list(fm.GPS_FILE, session_id)
+    gps = GpsReader(logger, gps_list)
+    if not gps.set_up():
+        logger.error("couldn't setup gps")
         return
 
-    # ============ START RECORDING ===============
-    audio.start()
+    # ============ GPS RECORD =============
+    gps.start()
+    gps.stop()
+
 
 
 if __name__ == "__main__":
