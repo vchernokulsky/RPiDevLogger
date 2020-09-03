@@ -125,6 +125,6 @@ class UsbAudio:
 
     def callback(self, in_data, frame_count, time_info, status):
         if status:
-            self.logger.warning(status, file=sys.stderr)
+            self.logger.warning("audio stream status " + str(status))
         self.q.put(in_data)
         return in_data, pyaudio.paContinue

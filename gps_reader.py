@@ -1,38 +1,25 @@
 import serial
 
+from file_writer import FileListWriter
+
 SERIAL_PORT = "/dev/ttyACM0"
 
 
 class GpsReader:
     def __init__(self, logger, file_list):
         self.logger = logger
-        self.file_list = file_list
 
         self.gps = None
-        self.writer_list = []
-
-    def __write_list_create(self):
-        for name in self.file_list:
-            f = open(name, 'w')
-            self.writer_list.append(f)
-
-    def __write_list_write(self, data):
-        for w in self.writer_list:
-            w.write(data)
-
-    def __write_list_close(self):
-        for w in self.writer_list:
-            w.close()
+        self.file_writer = FileListWriter(file_list)
 
     def __write(self, data):
         if data.startswith(b'$GNGGA') or data.startswith(b'$GNRMC'):
-            self.__write_list_write(data.decode("utf-8"))
+            self.file_writer.write(data.decode("utf-8"))
 
     def set_up(self):
         ret = False
 
-        self.__write_list_create()
-        if len(self.writer_list) < 1:
+        if self.file_writer.create_list() < 1:
             self.logger.error("couldn't open files to write gps data")
             return ret
 
@@ -57,6 +44,6 @@ class GpsReader:
 
     def stop(self):
         self.gps.close()
-        self.__write_list_close()
+        self.file_writer.close()
 
 

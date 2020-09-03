@@ -6,6 +6,7 @@ from multiprocessing import Process
 
 from file_manager import FileManager
 from gps_reader import GpsReader
+from logic_reader import LogicReader
 from usb_audio import UsbAudio
 
 CONFIG_FILE = 'config.json'
@@ -96,12 +97,6 @@ def main():
         return
     logger.info("audio will be written into files : {}".format(audio_list))
 
-    # =========== AUDIO SETUP ====================
-    audio = UsbAudio(logger, audio_list)
-    if not audio.set_up():
-        logger.error("couldn't setup audio device")
-        return
-
     # =========== GET GPS FILES ====================
     gps_list = fm.get_file_list(fm.GPS_FILE, session_id)
     if len(gps_list) <= 0:
@@ -109,10 +104,29 @@ def main():
         return
     logger.info("gps data will be written into files : {}".format(gps_list))
 
+    # =========== GET SALEAE LOGIC FILES ====================
+    logic_list = fm.get_file_list(fm.LOGIC_FILE, session_id)
+    if len(logic_list) <= 0:
+        logger.error("cannot create saleae logic files")
+        return
+    logger.info("saleae logic data will be written into files : {}".format(logic_list))
+
+    # =========== AUDIO SETUP ====================
+    audio = UsbAudio(logger, audio_list)
+    if not audio.set_up():
+        logger.error("couldn't setup audio device")
+        return
+
     # ============== GPS SETUP =============
     gps = GpsReader(logger, gps_list)
     if not gps.set_up():
         logger.error("couldn't setup gps")
+        return
+
+    # ============== GPS SETUP =============
+    logic = LogicReader(logger, logic_list)
+    if not logic.set_up():
+        logger.error("couldn't setup saleae logic")
         return
 
     # ============ START RECORDING ===============
@@ -122,6 +136,10 @@ def main():
     # ============ GPS RECORD =============
     gps_proc = Process(target=gps.start, args=())
     gps_proc.start()
+
+    # ============ LOGIC RECORD =============
+    logic_proc = Process(target=logic.start, args=())
+    logic_proc.start()
 
     try:
         while True:
@@ -133,9 +151,11 @@ def main():
 
     audio_proc.join()
     gps_proc.join()
+    logic_proc.join()
 
     audio.stop()
     gps.stop()
+    logic.stop()
 
 
 if __name__ == "__main__":
