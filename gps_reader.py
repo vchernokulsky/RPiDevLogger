@@ -1,8 +1,7 @@
 import serial
 
+from SETUP import *
 from file_writer import FileListWriter
-
-SERIAL_PORT = "/dev/ttyACM0"
 
 
 class GpsReader:
@@ -24,7 +23,7 @@ class GpsReader:
             return ret
 
         try:
-            self.gps = serial.Serial(SERIAL_PORT, baudrate=9600, timeout=0.5)
+            self.gps = serial.Serial(GPS_SERIAL_PORT, baudrate=GPS_BAUDRATE, timeout=0.5)
             ret = True
         except (ValueError, IOError) as err:
             self.logger.exception(err)

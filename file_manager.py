@@ -2,6 +2,8 @@ import os
 from os import path
 import shutil
 
+from SETUP import DAT_DIR
+
 
 def get_free_memory_gb():
     total, used, free = shutil.disk_usage("/")
@@ -16,7 +18,7 @@ class FileManager:
         self.AUDIO_FILE = 2
         self.min_memory = min_mem
         self.rm_koef = rm_koef
-        self.directories = ['/home/pi/data', '/home/pi/data1']
+        self.directories = DAT_DIR
         self.file_template = ['{:02d}_logic.log', '{:02d}_GPS.log', '{:02d}_audio.wav']
 
     def __memory_enough(self):

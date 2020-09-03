@@ -4,13 +4,11 @@ import logging.handlers
 import time
 from multiprocessing import Process
 
+from SETUP import *
 from file_manager import FileManager
 from gps_reader import GpsReader
 from logic_reader import LogicReader
 from usb_audio import UsbAudio
-
-CONFIG_FILE = 'config.json'
-LOG_FILE_NAME = 'RPiDevLogger.log'
 
 FREQ = 0
 MIN_MEM_FREE = 1
@@ -124,7 +122,7 @@ def main():
         return
 
     # ============== LOGIC SETUP =============
-    logic = LogicReader(logger, logic_list)
+    logic = LogicReader(logger, logic_list, config[keys[FREQ]])
     if not logic.set_up():
         logger.error("couldn't setup saleae logic")
         return

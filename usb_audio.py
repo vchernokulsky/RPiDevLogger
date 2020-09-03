@@ -3,11 +3,7 @@ import pyaudio
 import queue
 import wave
 
-form_1 = pyaudio.paInt16  # 16-bit resolution
-chunk = 1000  # 2^12 samples for buffer
-
-CHANNELS = None
-RATE = None
+from SETUP import *
 
 
 class UsbAudio:
@@ -20,10 +16,10 @@ class UsbAudio:
         self.dev_index, self.chans, self.samp_rate = self.__microphone_setup()
         self.logger.info("Microphone default values")
         self.logger.info("index:{}\tchans:{}\tsample_rate:{}".format(self.dev_index, self.chans, self.samp_rate))
-        if CHANNELS is not None:
-            self.chans = CHANNELS
-        if RATE is not None:
-            self.samp_rate = RATE
+        if MICROPHONE_CHANNELS is not None:
+            self.chans = MICROPHONE_CHANNELS
+        if MICROPHONE_RATE is not None:
+            self.samp_rate = MICROPHONE_RATE
         self.logger.info("used values")
         self.logger.info("index:{}\tchans:{}\tsample_rate:{}".format(self.dev_index, self.chans, self.samp_rate))
         self.wave_list = []
@@ -62,7 +58,7 @@ class UsbAudio:
     def __create_wave(self, filename):
         wavefile = wave.open(filename, 'wb')
         wavefile.setnchannels(self.chans)
-        wavefile.setsampwidth(self.audio.get_sample_size(form_1))
+        wavefile.setsampwidth(self.audio.get_sample_size(MICROPHONE_SAMPLE_SIZE))
         wavefile.setframerate(self.samp_rate)
         return wavefile
 
@@ -104,9 +100,9 @@ class UsbAudio:
             self.logger.error("couldn't create waves to write audio")
             return False
         try:
-            self.stream = self.audio.open(format=form_1, rate=self.samp_rate, channels=self.chans,
+            self.stream = self.audio.open(format=MICROPHONE_SAMPLE_SIZE, rate=self.samp_rate, channels=self.chans,
                                           input_device_index=self.dev_index, input=True,
-                                          frames_per_buffer=chunk, stream_callback=self.callback)
+                                          frames_per_buffer=MICROPHONE_SAMPLES_FOR_BUFFER, stream_callback=self.callback)
         except (ValueError, IOError) as err:
             self.logger.exception(err)
             return False
@@ -124,7 +120,7 @@ class UsbAudio:
         self.__wave_list_close()
 
     def callback(self, in_data, frame_count, time_info, status):
-        if status:
-            self.logger.warning("audio stream status " + str(status))
+        # if status:
+        #     self.logger.warning("audio stream status " + str(status))
         self.q.put(in_data)
         return in_data, pyaudio.paContinue
