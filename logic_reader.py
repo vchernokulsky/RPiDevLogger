@@ -1,9 +1,11 @@
+import os
+import signal
 import subprocess
 
 from file_writer import FileListWriter
 
 DRIVER = "fx2lafw"
-RATE = 500
+RATE = 100
 CHANNELS = "D0,D1,D2,D3,D4,D5,D6,D7"
 
 cmd = "sigrok-cli --driver {} -c samplerate={}k --channels {} --continuous".format(DRIVER, RATE, CHANNELS)
@@ -13,22 +15,23 @@ class LogicReader:
     def __init__(self, logger, file_list):
         self.logger = logger
         self.file_writer = FileListWriter(file_list)
+        self.process = None
 
     def __write(self, data):
             self.file_writer.write(data)
 
     def __get_data(self):
-        process = subprocess.Popen(cmd.split(" "),
+        self.process = subprocess.Popen(cmd.split(" "),
                                    stdout=subprocess.PIPE,
-                                   universal_newlines=True)
+                                   universal_newlines=True, shell=True)
         while True:
-            data = process.stdout.readline()
+            data = self.process.stdout.readline()
             self.__write(data)
-            return_code = process.poll()
+            return_code = self.process.poll()
             if return_code is not None:
                 self.logger.info('sigrok cli output RETURN CODE ' + str(return_code))
                 # Process has finished, read rest of the output
-                for output in process.stdout.readlines():
+                for output in self.process.stdout.readlines():
                     self.__write(output)
                 break
 
@@ -45,6 +48,7 @@ class LogicReader:
             while True:
                 self.__get_data()
         except KeyboardInterrupt:
+            self.process.kill()
             self.logger.info("finish reading saleae logic")
         except Exception as e:
             self.logger.exception(e)

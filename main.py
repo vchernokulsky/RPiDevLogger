@@ -123,7 +123,7 @@ def main():
         logger.error("couldn't setup gps")
         return
 
-    # ============== GPS SETUP =============
+    # ============== LOGIC SETUP =============
     logic = LogicReader(logger, logic_list)
     if not logic.set_up():
         logger.error("couldn't setup saleae logic")
