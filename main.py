@@ -119,12 +119,10 @@ def main():
     if not gps.set_up():
         logger.error("couldn't setup gps")
 
-
     # ============== LOGIC SETUP =============
     logic = LogicReader(logger, logic_list, config[keys[FREQ]])
     if not logic.set_up():
         logger.error("couldn't setup saleae logic")
-        return
 
     # ============ START RECORDING ===============
     audio_proc = Process(target=audio.start, args=())
