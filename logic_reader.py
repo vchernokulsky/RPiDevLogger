@@ -21,7 +21,7 @@ class LogicReader:
         # self.logger.info(self.cmd)
         self.process = subprocess.Popen(self.cmd.split(" "),
                                         stdout=subprocess.PIPE,
-                                        universal_newlines=True, shell=True)
+                                        universal_newlines=True)
         while True:
             data = self.process.stdout.readline()
             self.__write(data)
