@@ -37,5 +37,3 @@ echo 'WantedBy=multi-user.target' >> /etc/systemd/system/rpi_dev_logger.service
 
 systemctl daemon-reload
 systemctl enable rpi_dev_logger
-sleep 2
-systemctl start rpi_dev_logger
