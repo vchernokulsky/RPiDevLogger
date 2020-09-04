@@ -7,6 +7,7 @@ from file_writer import FileListWriter
 class GpsReader:
     def __init__(self, logger, file_list):
         self.logger = logger
+        self.is_ok = False
 
         self.gps = None
         self.file_writer = FileListWriter(file_list)
@@ -25,24 +26,27 @@ class GpsReader:
         try:
             self.gps = serial.Serial(GPS_SERIAL_PORT, baudrate=GPS_BAUDRATE, timeout=0.5)
             ret = True
-        except (ValueError, IOError) as err:
+            self.is_ok = True
+        except Exception as err:
             self.logger.exception(err)
         return ret
 
     def start(self):
-        self.logger.info("start reading GPS")
-        try:
-            while True:
-                data = self.gps.readline()
-                self.__write(data)
-        except KeyboardInterrupt:
-            self.logger.info("finish reading GPS")
-        except Exception as e:
-            self.logger.exception(e)
-        self.stop()
+        if self.is_ok:
+            self.logger.info("start reading GPS")
+            try:
+                while True:
+                    data = self.gps.readline()
+                    self.__write(data)
+            except KeyboardInterrupt:
+                self.logger.info("finish reading GPS")
+            except Exception as e:
+                self.logger.exception(e)
+            self.stop()
 
     def stop(self):
-        self.gps.close()
+        if self.is_ok:
+            self.gps.close()
         self.file_writer.close()
 
 

@@ -118,7 +118,7 @@ def main():
     gps = GpsReader(logger, gps_list)
     if not gps.set_up():
         logger.error("couldn't setup gps")
-        return
+
 
     # ============== LOGIC SETUP =============
     logic = LogicReader(logger, logic_list, config[keys[FREQ]])
