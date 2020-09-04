@@ -10,6 +10,7 @@ class UsbAudio:
     def __init__(self, logger, file_list):
         self.logger = logger
         self.file_list = file_list
+        self.is_ok = False
 
         self.q = queue.Queue()
         self.audio = pyaudio.PyAudio()  # create pyaudio instantiation
@@ -56,16 +57,27 @@ class UsbAudio:
         return dev_index, chans, rate
 
     def __create_wave(self, filename):
+        chans_default = 1
+        rate_default = 44100
         wavefile = wave.open(filename, 'wb')
-        wavefile.setnchannels(self.chans)
+        if self.chans < 1:
+            wavefile.setnchannels(chans_default)
+        else:
+            wavefile.setnchannels(self.chans)
         wavefile.setsampwidth(self.audio.get_sample_size(MICROPHONE_SAMPLE_SIZE))
-        wavefile.setframerate(self.samp_rate)
+        if self.samp_rate < 1:
+            wavefile.setframerate(rate_default)
+        else:
+            wavefile.setframerate(self.samp_rate)
         return wavefile
 
     def __wave_list_create(self):
         for file in self.file_list:
-            wv = self.__create_wave(file)
-            self.wave_list.append(wv)
+            try:
+                wv = self.__create_wave(file)
+                self.wave_list.append(wv)
+            except (ValueError, IOError) as err:
+                self.logger.exception(err)
 
     def __wave_list_write(self, data):
         for wv in self.wave_list:
@@ -86,6 +98,11 @@ class UsbAudio:
             self.logger.exception(e)
 
     def set_up(self):
+        self.__wave_list_create()
+        if len(self.wave_list) < 1:
+            self.logger.error("couldn't create waves to write audio")
+            return False
+
         if self.dev_index < 0:
             self.logger.error("no dev index")
             return False
@@ -95,10 +112,6 @@ class UsbAudio:
         if self.samp_rate < 1:
             self.logger.error("no default sample rate")
             return False
-        self.__wave_list_create()
-        if len(self.wave_list) < 1:
-            self.logger.error("couldn't create waves to write audio")
-            return False
         try:
             self.stream = self.audio.open(format=MICROPHONE_SAMPLE_SIZE, rate=self.samp_rate, channels=self.chans,
                                           input_device_index=self.dev_index, input=True,
@@ -106,17 +119,20 @@ class UsbAudio:
         except (ValueError, IOError) as err:
             self.logger.exception(err)
             return False
+        self.is_ok = True
         return True
 
     def start(self):
-        self.stream.start_stream()
-        self.logger.info("start recording")
-        self.write_to_files()
+        if self.is_ok:
+            self.stream.start_stream()
+            self.logger.info("start recording")
+            self.write_to_files()
 
     def stop(self):
-        self.stream.stop_stream()
-        self.stream.close()
-        self.audio.terminate()
+        if self.is_ok:
+            self.stream.stop_stream()
+            self.stream.close()
+            self.audio.terminate()
         self.__wave_list_close()
 
     def callback(self, in_data, frame_count, time_info, status):

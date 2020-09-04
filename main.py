@@ -113,7 +113,6 @@ def main():
     audio = UsbAudio(logger, audio_list)
     if not audio.set_up():
         logger.error("couldn't setup audio device")
-        return
 
     # ============== GPS SETUP =============
     gps = GpsReader(logger, gps_list)
