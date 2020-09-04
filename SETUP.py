@@ -1,7 +1,7 @@
 import pyaudio
 
-CONFIG_FILE = '/home/pi/config.json'
-LOG_FILE_NAME = '/home/pi/RPiDevLogger.log'
+CONFIG_FILE = '/home/pi/RPiDevLogger/config.json'
+LOG_FILE_NAME = '/home/pi/RPiDevLogger/RPiDevLogger.log'
 DAT_DIR = ['/home/pi/data', '/home/pi/data1']
 
 GPS_SERIAL_PORT = "/dev/ttyACM0"

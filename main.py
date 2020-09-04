@@ -1,6 +1,8 @@
 import json
 import logging
 import logging.handlers
+import signal
+import sys
 import time
 from multiprocessing import Process
 
@@ -27,6 +29,12 @@ def set_logger():
     logger.addHandler(handler)
     # logger.setLevel(logging.ERROR)
     logger.setLevel(logging.INFO)
+
+
+def exit_gracefully(signum, frame):
+    print("Buy!")
+    logger.info("Program finished")
+    sys.exit(0)
 
 
 def read_config():
@@ -69,6 +77,8 @@ def validate_value(val):
 def main():
     # ======= READ CONFIG ===================
     set_logger()
+    signal.signal(signal.SIGINT, exit_gracefully)
+    signal.signal(signal.SIGTERM, exit_gracefully)
     logger.info("******** START ***********")
     config = format_config(read_config())
     if config is None:
