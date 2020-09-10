@@ -4,6 +4,10 @@ IDLE = 0
 SAVE = 1
 WRITE = 2
 
+#  sudo cp -r empty/ /usr/share/libsigrokdecode2/decoders
+#
+# sigrok-cli -d demo  --channels D0,D1 --config samplerate=500k --samples 100 -O hex -P empty -B empty > test.log
+
 class Decoder(srd.Decoder):
     api_version = 2
     id = 'empty'
@@ -52,7 +56,7 @@ class Decoder(srd.Decoder):
     def write(self):
         self.state = IDLE
         sample_avg = round(len(self.sample_buf) / 2)
-        print(self.sample_buf[sample_avg])
+        # print(self.sample_buf[sample_avg])
         self.put(self.start_num, self.samplenum, self.out_ann, [0, [""]])
         self.put(self.start_num + sample_avg, self.start_num + sample_avg, self.out_ann, [1, [""]])
         self.put(self.start_num + sample_avg, self.start_num + sample_avg,
@@ -69,15 +73,3 @@ class Decoder(srd.Decoder):
                 else:
                     self.write()
 
-    # def decode(self):
-    #     while True:
-    #         if self.state == IDLE:
-    #             pins = self.wait({0: 'h'})
-    #             print(pins)
-    #             self.set_to_save(pins)
-    #         elif self.state == SAVE:
-    #             pins = self.wait([{0: 'h'}, {0: 'l'}])
-    #             if pins[0] == 1:
-    #                 self.save(pins)
-    #             else:
-    #                 self.write()
