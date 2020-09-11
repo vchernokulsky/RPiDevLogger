@@ -1,13 +1,12 @@
 import sigrokdecode as srd
 from functools import reduce
-IDLE = 0
-SAVE = 1
-WRITE = 2
 
-# sudo cp -r LogicFilter/ /usr/share/libsigrokdecode/decoders/
-# sigrok-cli -d demo --channels D0,D1,D2,D3,D4,D5,D6,D7 --config samplerate=100 --time 1000 -P LogicFilter -B LogicFilter > example.log
+
+# sudo cp -r samples512hz/ /usr/share/libsigrokdecode/decoders/
+# sigrok-cli -d demo --channels D0,D1,D2,D3 --config samplerate=100k --time 1000 -P samples512hz -B samples512hz > example.log
 
 OUTPUT_FREQUENCY = 512
+
 
 class Decoder(srd.Decoder):
     api_version = 3
@@ -41,68 +40,81 @@ class Decoder(srd.Decoder):
     )
 
     def __init__(self):
-        self.samplerate = None
-        self.reset()
+        self.out_ann = None
+        self.out_binary = None
+        self.first_start_num = 0
+        self.first_end_num = 0
+        self.cur_num = 0
+        self.main_ch_idx = -1
+        self.freq_num = 1
+        self.sample_buf = []
 
     def start(self):
         self.out_ann = self.register(srd.OUTPUT_ANN)
         self.out_binary = self.register(srd.OUTPUT_BINARY)
 
     def reset(self):
-        self.samplerate = None
-        self.state = IDLE
+        self.first_start_num = 0
+        self.first_end_num = 0
+        self.cur_num = 0
+        self.main_ch_idx = -1
+        self.freq_num = 1
         self.sample_buf = []
-        self.start_num = 0
 
     def metadata(self, key, value):
         if key == srd.SRD_CONF_SAMPLERATE:
-            self.samplerate = value
             self.freq_num = int(value / OUTPUT_FREQUENCY)
 
     def write(self, pins, sample_id):
-
         bit_tuple = pins + (0, 0, 0, 0)
         bit_int = reduce(lambda a, b: (a << 1) | b, reversed(bit_tuple))
         ann_str = "{}) {} {}".format(sample_id, str(bit_tuple), bit_int)
         self.put(sample_id, sample_id, self.out_ann, [0, [ann_str, ""]])
         self.put(sample_id, sample_id, self.out_binary, [0, bytes([bit_int])])
 
-    def write_first(self):
+    def find_start_of_first(self):
+        start_cond = [{i: 'h'} for i in range(len(Decoder.channels))]
+        pins = self.wait(start_cond)
+        self.main_ch_idx = pins.index(1)
+        self.sample_buf = [pins]
+        return self.samplenum
+
+    def find_end_of_first(self):
+        while True:
+            pins = self.wait({'skip': 1})
+            if pins[self.main_ch_idx] == 1:
+                self.sample_buf.append(pins)
+            else:
+                return self.samplenum, pins
+
+    def find_first_sample(self):
         sample_id = round(len(self.sample_buf) / 2)
         bit_tuple = self.sample_buf[sample_id]
-        self.cur_id = self.start_num + sample_id
-        self.write(bit_tuple, self.cur_id)
+        return self.first_start_num + sample_id, bit_tuple
+
+    def check_buffer_for_samples(self):
+        while self.first_end_num - self.cur_num > self.freq_num:
+            self.cur_num += self.freq_num
+            sample = self.sample_buf[self.cur_num - self.start_num]
+            self.write(sample, self.cur_num)
+
+    def got_to_freq_mode(self, last_pins):
+        if self.first_end_num - self.cur_num == self.freq_num:
+            self.write(last_pins, self.first_end_num)
+        else:
+            skip_count = self.cur_num + self.freq_num - self.first_end_num
+            pins = self.wait({'skip': skip_count})
+            self.write(pins, self.samplenum)
 
     def decode(self):
 
-        start_cond = [{i: 'h'} for i in range(len(Decoder.channels))]
-        pins = self.wait(start_cond)
-        ch_idx = pins.index(1)
-        self.start_num = self.samplenum
-        self.sample_buf = [pins]
+        self.first_start_num = self.find_start_of_first()
+        self.first_end_num, first_end_sample = self.find_end_of_first()
+        self.cur_num, cur_sample = self.find_first_sample()
+        self.write(cur_sample, self.cur_num)
 
-        while True:
-            pins = self.wait({'skip': 1})
-            if pins[ch_idx] == 1:
-                self.sample_buf.append(pins)
-            else:
-                self.write_first()
-                self.end_id = self.samplenum
-                break
-
-        while True:
-            if self.end_id - self.cur_id == self.freq_num:
-                self.write(pins, self.end_id)
-                break
-            elif self.end_id - self.cur_id > self.freq_num:
-                self.cur_id += self.freq_num
-                sample = self.sample_buf[self.cur_id - self.start_num]
-                self.write(sample, self.cur_id)
-            else:
-                skip_count = self.cur_id + self.freq_num - self.end_id
-                pins = self.wait({'skip': skip_count})
-                self.write(pins, self.samplenum)
-                break
+        self.check_buffer_for_samples()
+        self.got_to_freq_mode(first_end_sample)
 
         while True:
             pins = self.wait({'skip': self.freq_num})
