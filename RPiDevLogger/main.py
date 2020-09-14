@@ -119,30 +119,18 @@ def main():
         return
     logger.info("saleae logic data will be written into files : {}".format(logic_list))
 
-    # =========== AUDIO SETUP ====================
+    # ============ START AUDIO RECORDING ===============
     audio = UsbAudio(logger, audio_list)
-    if not audio.set_up():
-        logger.error("couldn't setup audio device")
-
-    # ============== GPS SETUP =============
-    gps = GpsReader(logger, gps_list)
-    if not gps.set_up():
-        logger.error("couldn't setup gps")
-
-    # ============== LOGIC SETUP =============
-    logic = LogicReader(logger, logic_list, config[keys[FREQ]])
-    if not logic.set_up():
-        logger.error("couldn't setup saleae logic")
-
-    # ============ START RECORDING ===============
     audio_proc = Process(target=audio.start, args=())
     audio_proc.start()
 
     # ============ GPS RECORD =============
+    gps = GpsReader(logger, gps_list)
     gps_proc = Process(target=gps.start, args=())
     gps_proc.start()
 
     # ============ LOGIC RECORD =============
+    logic = LogicReader(logger, logic_list, config[keys[FREQ]])
     logic_proc = Process(target=logic.start, args=())
     logic_proc.start()
 

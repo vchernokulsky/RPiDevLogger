@@ -32,7 +32,7 @@ class GpsReader:
         return ret
 
     def start(self):
-        if self.is_ok:
+        if self.set_up():
             self.logger.info("start reading GPS")
             try:
                 while True:
@@ -43,6 +43,8 @@ class GpsReader:
             except Exception as e:
                 self.logger.exception(e)
             self.stop()
+        else:
+            self.logger.error("couldn't setup gps")
 
     def stop(self):
         if self.is_ok:

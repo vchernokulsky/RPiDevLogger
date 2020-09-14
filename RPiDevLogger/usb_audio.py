@@ -122,10 +122,12 @@ class UsbAudio:
         return True
 
     def start(self):
-        if self.is_ok:
+        if self.set_up():
             self.stream.start_stream()
             self.logger.info("start recording")
             self.write_to_files()
+        else:
+            self.logger.error("couldn't setup audio device")
 
     def stop(self):
         if self.is_ok:

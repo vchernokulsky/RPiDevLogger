@@ -1,11 +1,9 @@
-import os
 import subprocess
 
 from SETUP import *
 from file_writer import FileListWriter
 
-cmd_template = "sigrok-cli --driver {} --channels {} --config samplerate={}k --continuous -P LogicFilter -B LogicFilter"
-cmd_tee_template = "tee {} >/dev/null"
+cmd_template = "sigrok-cli --driver {} -c samplerate={}k --channels {} --continuous"
 scan_template = "sigrok-cli --driver {} --scan"
 
 
@@ -13,8 +11,9 @@ class LogicReader:
     def __init__(self, logger, file_list, frequency):
         self.logger = logger
         self.file_writer = FileListWriter(file_list)
-        self.cmd_logic = cmd_template.format(SALEAE_LOGIC_DRIVER, SALEAE_LOGIC_CHANNELS, int(frequency))
-        self.logger.info(self.cmd_logic)
+        self.cmd = cmd_template.format(SALEAE_LOGIC_DRIVER, int(frequency), SALEAE_LOGIC_CHANNELS)
+        self.logger.info(self.cmd)
+        self.process = None
         self.is_ok = False
 
     def __write(self, data):
@@ -28,12 +27,20 @@ class LogicReader:
         return len(data[0]) > 0
 
     def __get_data(self):
+        # self.logger.info(self.cmd)
+        self.process = subprocess.Popen(self.cmd.split(" "),
+                                        stdout=subprocess.PIPE,
+                                        universal_newlines=True)
         while True:
-            self.cmd_output = cmd_tee_template.format(self.file_writer.get_files_str())
-            self.logger.info(self.cmd_output)
-            cmd = "{} | {}".format(self.cmd_logic, self.cmd_output)
-            exit_code = os.system(cmd)
-            self.logger.info("sigrok reading finished with code {}".format(exit_code))
+            data = self.process.stdout.readline()
+            self.__write(data)
+            return_code = self.process.poll()
+            if return_code is not None:
+                # self.logger.info('sigrok cli output RETURN CODE ' + str(return_code))
+                # Process has finished, read rest of the output
+                for output in self.process.stdout.readlines():
+                    self.__write(output)
+                break
 
     def set_up(self):
         if self.file_writer.create_list() < 1:
@@ -45,16 +52,19 @@ class LogicReader:
         return False
 
     def start(self):
-        if self.is_ok:
+        if self.set_up():
             self.logger.info("start reading saleae logic")
             try:
                 while True:
                     self.__get_data()
             except KeyboardInterrupt:
+                self.process.kill()
                 self.logger.info("finish reading saleae logic")
             except Exception as e:
                 self.logger.exception(e)
             self.stop()
+        else:
+            self.logger.error("couldn't setup saleae logic")
 
     def stop(self):
         self.file_writer.close()
