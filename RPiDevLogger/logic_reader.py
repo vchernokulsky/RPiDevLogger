@@ -1,3 +1,5 @@
+import os
+import select
 import subprocess
 
 from SETUP import *
@@ -27,20 +29,28 @@ class LogicReader:
         return len(data[0]) > 0
 
     def __get_data(self):
-        # self.logger.info(self.cmd)
-        self.process = subprocess.Popen(self.cmd.split(" "),
-                                        stdout=subprocess.PIPE,
-                                        universal_newlines=True)
-        while True:
-            data = self.process.stdout.readline()
-            self.__write(data)
-            return_code = self.process.poll()
-            if return_code is not None:
-                # self.logger.info('sigrok cli output RETURN CODE ' + str(return_code))
-                # Process has finished, read rest of the output
-                for output in self.process.stdout.readlines():
-                    self.__write(output)
-                break
+
+        exec_env = {}
+        exec_env.update(os.environ)
+
+        # create a pipe to receive stdout and stderr from process
+        (pipe_r, pipe_w) = os.pipe()
+
+        p = subprocess.Popen(self.cmd.split(" "),
+                             shell=False,
+                             env=exec_env,
+                             stdout=pipe_w,
+                             stderr=pipe_w)
+
+        while p.poll() is None:
+            while len(select.select([pipe_r], [], [], 0)[0]) == 1:
+                output = os.read(pipe_r, 1024)
+                self.__write(output)
+
+        os.close(pipe_r)
+        os.close(pipe_w)
+        self.logger.info('sigrok cli output RETURN CODE ' + str(p.return_code))
+        print(p.returncode)
 
     def set_up(self):
         if self.file_writer.create_list() < 1:

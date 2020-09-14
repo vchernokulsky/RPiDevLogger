@@ -15,7 +15,7 @@ class FileListWriter:
 
     def create_list(self):
         for name in self.file_list:
-            f = open(name, 'w')
+            f = open(name, 'wb', buffering=0)
             self.writer_list.append(f)
         return len(self.writer_list)
 
