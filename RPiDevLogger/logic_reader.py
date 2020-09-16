@@ -49,8 +49,7 @@ class LogicReader:
 
         os.close(pipe_r)
         os.close(pipe_w)
-        self.logger.info('sigrok cli output RETURN CODE ' + str(p.return_code))
-        print(p.returncode)
+        self.logger.info('sigrok cli output RETURN CODE ' + str(p.returncode))
 
     def set_up(self):
         if self.file_writer.create_list() < 1:

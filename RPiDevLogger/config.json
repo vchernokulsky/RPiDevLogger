@@ -1,5 +1,5 @@
 {
-  "frequency": 100.0,
+  "frequency": 500.0,
   "min_free_space_gb": 1.0,
   "file_remove_koef": 5.0
 }
