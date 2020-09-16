@@ -5,7 +5,7 @@ SAVE = 1
 WRITE = 2
 
 # sudo cp -r LogicFilter/ /usr/share/libsigrokdecode/decoders/
-# sigrok-cli -d demo --channels D0,D1,D2,D3,D4,D5,D6,D7 --config samplerate=100 --time 1000 -P LogicFilter - LogicFilter > example.log
+# sigrok-cli -d demo --channels D0,D1,D2,D3,D4,D5,D6,D7 --config samplerate=100 --time 1000 -P LogicFilter -B LogicFilter > example.log
 
 
 class Decoder(srd.Decoder):

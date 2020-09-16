@@ -23,10 +23,14 @@ class Decoder(srd.Decoder):
         {'id': 'd1', 'name': 'D1', 'desc': 'Data'},
         {'id': 'd2', 'name': 'D2', 'desc': 'Data'},
         {'id': 'd3', 'name': 'D3', 'desc': 'Data'},
-        # {'id': 'd4', 'name': 'D4', 'desc': 'Data'},
-        # {'id': 'd5', 'name': 'D5', 'desc': 'Data'},
-        # {'id': 'd6', 'name': 'D6', 'desc': 'Data'},
-        # {'id': 'd7', 'name': 'D7', 'desc': 'Data'},
+        {'id': 'd4', 'name': 'D4', 'desc': 'Data'},
+        {'id': 'd5', 'name': 'D5', 'desc': 'Data'},
+        {'id': 'd6', 'name': 'D6', 'desc': 'Data'},
+        {'id': 'd7', 'name': 'D7', 'desc': 'Data'},
+        {'id': 'd8', 'name': 'D8', 'desc': 'Data'},
+        {'id': 'd9', 'name': 'D9', 'desc': 'Data'},
+        {'id': 'd10', 'name': 'D10', 'desc': 'Data'},
+        {'id': 'd11', 'name': 'D11', 'desc': 'Data'},
     )
     annotations = (
        ('sample', 'SampleCaptured'),
