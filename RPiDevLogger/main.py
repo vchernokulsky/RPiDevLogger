@@ -17,6 +17,7 @@ MIN_MEM_FREE = 1
 RM_KOEF = 2
 
 keys = ['frequency', 'min_free_space_gb', 'file_remove_koef']
+float_keys = ['min_free_space_gb', 'file_remove_koef']
 
 
 logger = logging.getLogger("RPiDevLogger")
@@ -56,7 +57,7 @@ def format_config(j_dict):
         if key not in j_dict:
             logger.error('key "{}" missed in configuration file'.format(key))
             return None
-        val = validate_value(j_dict[key])
+        val = validate_value(j_dict[key], key)
         if val is None:
             logger.error('{} value couldn\'t be converted to float'.format(key))
             return None
@@ -64,10 +65,13 @@ def format_config(j_dict):
     return params
 
 
-def validate_value(val):
+def validate_value(val, key):
     ret = None
     try:
-        ret = float(val)
+        if key in float_keys:
+            ret = float(val)
+        else:
+            ret = str(val)
     except Exception as e:
         logger.exception(e)
     finally:

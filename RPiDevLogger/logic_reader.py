@@ -1,11 +1,12 @@
 import os
 import select
 import subprocess
+from time import sleep
 
 from SETUP import *
 from file_writer import FileListWriter
 
-cmd_template = "sigrok-cli --driver {} -c samplerate={}k --channels {} --continuous -P samples512hz -B samples512hz"
+cmd_template = "sigrok-cli --driver {} -c samplerate={} --channels {} --continuous -P samples512hz -B samples512hz"
 scan_template = "sigrok-cli --driver {} --scan"
 
 
@@ -13,7 +14,7 @@ class LogicReader:
     def __init__(self, logger, file_list, frequency):
         self.logger = logger
         self.file_writer = FileListWriter(file_list)
-        self.cmd = cmd_template.format(SALEAE_LOGIC_DRIVER, int(frequency), SALEAE_LOGIC_CHANNELS)
+        self.cmd = cmd_template.format(SALEAE_LOGIC_DRIVER, frequency, SALEAE_LOGIC_CHANNELS)
         self.logger.info(self.cmd)
         self.process = None
         self.is_ok = False
@@ -42,6 +43,7 @@ class LogicReader:
                              stdout=pipe_w,
                              stderr=pipe_w)
 
+        sleep(1)
         while p.poll() is None:
             while len(select.select([pipe_r], [], [], 0)[0]) == 1:
                 output = os.read(pipe_r, 1024)
