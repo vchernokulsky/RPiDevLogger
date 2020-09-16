@@ -74,7 +74,7 @@ class Decoder(srd.Decoder):
         bit_int = reduce(lambda a, b: (a << 1) | b, reversed(bit_tuple))
         ann_str = "{}) {} {}".format(sample_id, str(bit_tuple), bit_int)
         self.put(sample_id, sample_id, self.out_ann, [0, [ann_str, ""]])
-        self.put(sample_id, sample_id, self.out_binary, [0, bytes([bit_int])])
+        self.put(sample_id, sample_id, self.out_binary, [0, bit_int.to_bytes(2, byteorder='little')])
 
     def find_start_of_first(self):
         start_cond = [{i: 'h'} for i in range(len(Decoder.channels))]

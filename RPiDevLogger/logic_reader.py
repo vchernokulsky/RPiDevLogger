@@ -5,7 +5,7 @@ import subprocess
 from SETUP import *
 from file_writer import FileListWriter
 
-cmd_template = "sigrok-cli --driver {} -c samplerate={}k --channels {} --continuous"
+cmd_template = "sigrok-cli --driver {} -c samplerate={}k --channels {} --continuous -P samples512hz -B samples512hz"
 scan_template = "sigrok-cli --driver {} --scan"
 
 
