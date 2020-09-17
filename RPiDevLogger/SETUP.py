@@ -8,7 +8,12 @@ GPS_SERIAL_PORT = "/dev/ttyACM0"
 GPS_BAUDRATE = 9600
 
 SALEAE_LOGIC_DRIVER = "saleae-logic16"
-SALEAE_LOGIC_CHANNELS = "0,1,2,3,4,5,6,7,8,9,10,11"
+
+# SALEAE_LOGIC_CHANNELS specify channels parameter for sigrok cli,
+# use None for default settings(use all the channels available	on  a  device)
+# None value is recommended to use due to driver issue
+# default value usage helps to avoid channels confusion
+SALEAE_LOGIC_CHANNELS = None
 
 
 MICROPHONE_CHANNELS = None  # use None for default settings (read from microphone)
