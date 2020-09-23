@@ -78,7 +78,7 @@ class Decoder(srd.Decoder):
 
     def find_start_of_first(self):
         start_cond = [{i: 'h'} for i in range(len(Decoder.channels))]
-        pins = self.wait(start_cond)
+        pins = self.wait(start_cond)eq
         self.main_ch_idx = pins.index(1)
         self.sample_buf = [pins]
         return self.samplenum
@@ -99,7 +99,7 @@ class Decoder(srd.Decoder):
     def check_buffer_for_samples(self):
         while self.first_end_num - self.cur_num > self.freq_num:
             self.cur_num += self.freq_num
-            sample = self.sample_buf[self.cur_num - self.start_num]
+            sample = self.sample_buf[self.cur_num - self.first_start_num]
             self.write(sample, self.cur_num)
 
     def got_to_freq_mode(self, last_pins):
