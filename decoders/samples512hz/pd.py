@@ -78,7 +78,7 @@ class Decoder(srd.Decoder):
 
     def find_start_of_first(self):
         start_cond = [{i: 'h'} for i in range(len(Decoder.channels))]
-        pins = self.wait(start_cond)eq
+        pins = self.wait(start_cond)
         self.main_ch_idx = pins.index(1)
         self.sample_buf = [pins]
         return self.samplenum
