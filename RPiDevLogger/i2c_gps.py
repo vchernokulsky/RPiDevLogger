@@ -1,3 +1,4 @@
+import string
 import time
 import json
 import smbus
@@ -8,45 +9,61 @@ address = 0x42
 gpsReadInterval = 0.1
 LOG = logging.getLogger()
 
-def connectBus():
+
+def connect_bus():
     global BUS
     BUS = smbus.SMBus(1)
 
 
-def parseResponse(gpsLine):
-    global lastLocation
-    gpsChars = ''.join(chr(c) for c in gpsLine)
-    if "*" not in gpsChars:
-        return False
-    gpsParts = gpsChars.split('*')
-    if len(gpsParts) != 2:
-        print("cannot get checksum")
-        return False
-    gpsStr = gpsParts[0]
-    chkSum = gpsParts[1]
-    gpsComponents = gpsStr.split(',')
-    gpsStart = gpsComponents[0]
-    if gpsStart not in ["$GNRMC", "$GNGGA"]:
-        return True
-    if gpsStart == "$GNRMC":
-        if len(gpsComponents) != 13:
-            print("wrong fields number")
+def __check_nmea_message(msg, chk):
+    chk_val = 0
+    for ch in msg[1:]:  # Remove the $
+        chk_val ^= ord(ch)
+    try:
+        if chk_val != int(chk, 16):
+            # print("wrong checksum: " + msg + "*" + chk)
+            LOG.info('incorrect checksum in MSG: ' + msg)
             return False
-    if gpsStart == "$GNGGA":
-        if len(gpsComponents) != 15:
-            print("wrong fields number")
-            return False
-    chkVal = 0
-    for ch in gpsStr[1:]:  # Remove the $
-        chkVal ^= ord(ch)
-    if chkVal != int(chkSum, 16):
-        print("wrong checksum")
-        return False
-    print(gpsChars)
+    except ValueError as ex:
+        LOG.info('incorrect character in NMEA checksum: ' + chk)
     return True
 
 
-def readGPS():
+def __get_nmea_data(nmea_string):
+    result = None, None
+    nmea_data_array = nmea_string.split('*')
+    if len(nmea_data_array) != 2:
+        pass
+        # print("NMEA checksum contain wrong character:")
+        # print("[ " + nmea_string + " ]")
+    else:
+        nmea_msg = nmea_data_array[0]
+        nmea_chk = nmea_data_array[1]
+        if __check_nmea_message(nmea_msg, nmea_chk):
+            nmea_data = nmea_msg.split(',')
+            result = nmea_data[0], nmea_data[1:]
+    return result
+
+
+def parse_response(gps_data_array):
+    gps_data_string = ''.join(chr(c) for c in gps_data_array)
+    header, param = __get_nmea_data(gps_data_string)
+    if header is not None:
+        if header not in ["$GNRMC", "$GNGGA"]:
+            return True
+        if header == "$GNRMC":
+            if len(param) != 12:
+                print("wrong fields number")
+                return False
+        if header == "$GNGGA":
+            if len(param) != 14:
+                print("wrong fields number")
+                return False
+        print(gps_data_string)
+    return True
+
+
+def gps_reading_loop():
     c = None
     response = []
     try:
@@ -58,16 +75,16 @@ def readGPS():
                 break
             else:
                 response.append(c)
-        parseResponse(response)
+        parse_response(response)
     except IOError:
         time.sleep(0.5)
-        connectBus()
+        connect_bus()
     except Exception as e:
         print(e)
         LOG.error(e)
 
 
-connectBus()
+connect_bus()
 while True:
-    readGPS()
+    gps_reading_loop()
     time.sleep(gpsReadInterval)
