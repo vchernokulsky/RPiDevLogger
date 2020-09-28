@@ -3,7 +3,7 @@ from functools import reduce
 
 
 # sudo cp -r samples512hz/ /usr/share/libsigrokdecode/decoders/
-# sigrok-cli -d demo --channels D0,D1,D2,D3 --config samplerate=100k --time 1000 -P samples512hz -B samples512hz > example.log
+# sigrok-cli -d saleae-logic16 --config samplerate=500k --time 1000 -P samples512hz -B samples512hz > example.log
 # sigrok-cli -i session.bin -I binary:numchannels=16:samplerate=500000 --config samplerate=500k -P samples512hz -B samples512hz
 
 OUTPUT_FREQUENCY = 512
@@ -75,10 +75,6 @@ class Decoder(srd.Decoder):
             self.freq_num = int(value / OUTPUT_FREQUENCY)
             self.extra_num = int((value - self.freq_num * OUTPUT_FREQUENCY) / EXTRA_FREQ)
             self.extra_cnt = int(OUTPUT_FREQUENCY/EXTRA_FREQ)
-            print("samplerate {}".format(value))
-            print("samples to skip {}".format(self.freq_num))
-            print("extra skip {}".format(self.extra_num))
-            print("extra cnt {}".format(self.extra_cnt))
 
     def write(self, pins, sample_id):
         bit_tuple = pins + (0, 0, 0, 0)
