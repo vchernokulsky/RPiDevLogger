@@ -6,7 +6,7 @@ from time import sleep
 from SETUP import *
 from file_writer import FileListWriter
 
-cmd_template = "sigrok-cli -d {} {}--config samplerate={} --samples 100000000000000 -P samples512hz -B samples512hz"
+cmd_template = "sigrok-cli -d {} {}--config samplerate={} --samples 100000000000000 --loglevel 0 -P samples512hz -B samples512hz"
 scan_template = "sigrok-cli --driver {} --scan"
 
 
