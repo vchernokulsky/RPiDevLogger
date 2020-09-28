@@ -4,8 +4,11 @@ CONFIG_FILE = '/home/pi/RPiDevLogger/config.json'
 LOG_FILE_NAME = '/home/pi/RPiDevLogger/RPiDevLogger.log'
 DAT_DIR = ['/home/pi/data', '/home/pi/data1']
 
-GPS_SERIAL_PORT = "/dev/ttyACM0"
-GPS_BAUDRATE = 9600
+
+GPS_I2C_LINE = 1  # find with command: ls /dev | grep i2c
+GPS_I2C_ADDRESS = 0x42  # find with command: sudo i2cdetect -y <GPS_I2C_LINE>
+GPS_READING_INTERVAL = 0.1
+
 
 SALEAE_LOGIC_DRIVER = "saleae-logic16"
 
