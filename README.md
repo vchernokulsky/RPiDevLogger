@@ -73,3 +73,28 @@ _file_remove_koef_ - (_K_) - коэффициент освобождения п�
 Для работы с устройством saleae-logic-16 необходимо установить соответствующие драйвера (https://sigrok.org/wiki/Saleae_Logic16).
 
 Для этого из папки `drivers` необходимо выполнить следующую команду:` sudo cp saleae-logic* /usr/share/sigrok-firmware/`
+
+# Декодирование файла .logicdata
+
+* Преобразование logicdata в bin
+
+Для этого в SaleaeLogicSoftware открыть файл _.logicdata_ и нажать _Options > Export Data > Export_
+
+![status output](/doc/saleae_logic_software.png)
+
+* Декодирование в текстовый формат
+
+`sigrok-cli -i filename.bin -I binary:numchannels=16:samplerate=500000 --config samplerate=500k -P samples512hz > decoded_filename.log` ,
+
+где _filename_ - имя файла, полученного в пункте 1,
+
+_decoded_filename_ - имя файла, в который будут записаны результаты декодирования. 
+
+* Декодирование в бинарный формат
+
+`sigrok-cli -i filename.bin -I binary:numchannels=16:samplerate=500000 --config samplerate=500k -P samples512hz -B samples512hz > decoded_filename.bin` ,
+
+где _filename_ - имя файла, полученного в пункте 1,
+
+_decoded_filename_ - имя файла, в который будут записаны результаты декодирования. 
+
