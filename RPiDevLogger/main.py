@@ -12,6 +12,8 @@ from gps_reader import GpsReader
 from logic_reader import LogicReader
 from usb_audio import UsbAudio
 
+from RPiDevLogger.makeFly import make_fly
+
 FREQ = 0
 MIN_MEM_FREE = 1
 RM_KOEF = 2
@@ -101,6 +103,14 @@ def main():
     if session_id < 0:
         return
     logger.info("Current session id: {}".format(session_id))
+
+    # =========== REWRITE LOGIC DATA ============
+    logger.info("start rewriting logic data")
+    try:
+        make_fly()
+        logger.info("finish rewriting logic data")
+    except Exception as e:
+        logger.exception(e)
 
     # =========== GET AUDIO FILES ==================
     audio_list = fm.get_file_list(fm.AUDIO_FILE, session_id)

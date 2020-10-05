@@ -53,6 +53,7 @@ def lineup(croped, fnum):
                 crop.seek(-4, 1)
 
 
-fnum = getFname()[14:-10]
-lineup(croplog(getFname(), fnum), fnum)
-os.remove(DIR+fnum+'_logic.crop')
+def make_fly():
+    fnum = getFname()[14:-10]
+    lineup(croplog(getFname(), fnum), fnum)
+    os.remove(DIR+fnum+'_logic.crop')
