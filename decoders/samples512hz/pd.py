@@ -3,12 +3,9 @@ from functools import reduce
 
 
 # sudo cp -r samples512hz/ /usr/share/libsigrokdecode/decoders/
-# sigrok-cli -d saleae-logic16 --config samplerate=500k --time 1000 -P samples512hz -B samples512hz > example.log
-# sigrok-cli -i session.bin -I binary:numchannels=16:samplerate=500000 --config samplerate=500k -P samples512hz -B samples512hz
+# sigrok-cli -d demo --channels D0,D1,D2,D3 --config samplerate=100k --time 1000 -P samples512hz -B samples512hz > example.log
 
 OUTPUT_FREQUENCY = 512
-EXTRA_FREQ = 32
-SEC_SKIP = 52
 
 
 class Decoder(srd.Decoder):
@@ -54,8 +51,6 @@ class Decoder(srd.Decoder):
         self.cur_num = 0
         self.main_ch_idx = -1
         self.freq_num = 1
-        self.extra_num = 0
-        self.extra_cnt = 1
         self.sample_buf = []
 
     def start(self):
@@ -73,8 +68,6 @@ class Decoder(srd.Decoder):
     def metadata(self, key, value):
         if key == srd.SRD_CONF_SAMPLERATE:
             self.freq_num = int(value / OUTPUT_FREQUENCY)
-            self.extra_num = int((value - self.freq_num * OUTPUT_FREQUENCY) / EXTRA_FREQ)
-            self.extra_cnt = int(OUTPUT_FREQUENCY/EXTRA_FREQ)
 
     def write(self, pins, sample_id):
         bit_tuple = pins + (0, 0, 0, 0)
@@ -127,18 +120,6 @@ class Decoder(srd.Decoder):
         self.check_buffer_for_samples()
         self.got_to_freq_mode(first_end_sample)
 
-        cnt = 0
-        cnt2 = 0
         while True:
-            cnt += 1
-            cnt2 += 1
-            skip_cnt = self.freq_num
-            if cnt >= self.extra_cnt:
-                skip_cnt += self.extra_num
-                cnt = 0
-            if cnt2 >= OUTPUT_FREQUENCY:
-                skip_cnt += SEC_SKIP
-                cnt2 = 0
-            pins = self.wait({'skip': skip_cnt})
+            pins = self.wait({'skip': self.freq_num})
             self.write(pins, self.samplenum)
-
