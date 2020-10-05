@@ -5,7 +5,7 @@ from functools import reduce
 # sudo cp -r samples512hz/ /usr/share/libsigrokdecode/decoders/
 # sigrok-cli -d demo --channels D0,D1,D2,D3 --config samplerate=100k --time 1000 -P samples512hz -B samples512hz > example.log
 
-OUTPUT_FREQUENCY = 512
+OUTPUT_FREQUENCY = 2560
 
 
 class Decoder(srd.Decoder):
