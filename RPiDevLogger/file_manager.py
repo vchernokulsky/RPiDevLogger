@@ -147,7 +147,7 @@ class FileManager:
             for uart in uart_config:
                 file_list = []
                 for dir in self.directories:
-                    file_list.append(self.uart_files.get_file_name(session_id, dir, uart_config['id']))
+                    file_list.append(self.uart_files.get_file_name(session_id, dir, uart['id']))
                 uart["file_list"] = file_list
             result = uart_config
         return result

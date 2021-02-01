@@ -28,7 +28,7 @@ UART_READING_INTERVAL = 0.1
 UART_CONFIG = [
     {
         "id": 1,
-        "port": "/dev/ttyACM0",
+        "port": "/dev/ttyAMA0",
         "baudrate": 115200
     },
     {
