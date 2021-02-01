@@ -26,7 +26,7 @@ def set_logger():
 
 
 def exit_gracefully(signum, frame):
-    print("Buy!")
+    print("Bye!")
     logger.info("Program finished")
     sys.exit(0)
 
