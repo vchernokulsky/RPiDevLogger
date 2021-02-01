@@ -6,6 +6,7 @@ import sys
 import time
 from multiprocessing import Process
 
+from RPiDevLogger.MultipleUarts import MultipleUarts
 from SETUP import *
 from file_manager import FileManager
 from gps_reader import GpsReader
@@ -133,6 +134,13 @@ def main():
         return
     logger.info("saleae logic data will be written into files : {}".format(logic_list))
 
+    # =========== GET UART CONFIG AND FILES ====================
+    uart_files = fm.get_uart_file_list(session_id)
+    if uart_files is None or len(uart_files) <= 0:
+        logger.error("cannot create uart files")
+        return
+    logger.info("uart config : {}".format(uart_files))
+
     # ============ START AUDIO RECORDING ===============
     audio = UsbAudio(logger, audio_list)
     audio_proc = Process(target=audio.start, args=())
@@ -148,6 +156,10 @@ def main():
     logic_proc = Process(target=logic.start, args=())
     logic_proc.start()
 
+    # ============ UART RECORD =============
+    uart = MultipleUarts(logger, uart_files)
+    uart.start()
+
     try:
         while True:
             time.sleep(1)
@@ -159,10 +171,12 @@ def main():
     audio_proc.join()
     gps_proc.join()
     logic_proc.join()
+    uart.join()
 
     audio.stop()
     gps.stop()
     logic.stop()
+    uart.stop()
 
 
 if __name__ == "__main__":

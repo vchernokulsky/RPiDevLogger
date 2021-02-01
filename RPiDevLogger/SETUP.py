@@ -23,3 +23,17 @@ MICROPHONE_CHANNELS = None  # use None for default settings (read from microphon
 MICROPHONE_RATE = None  # use None for default settings (read from microphone)
 MICROPHONE_SAMPLES_FOR_BUFFER = 1000
 MICROPHONE_SAMPLE_SIZE = pyaudio.paInt16  # 16-bit resolution
+
+UART_READING_INTERVAL = 0.1
+UART_CONFIG = [
+    {
+        "id": 1,
+        "port": "/dev/ttyACM0",
+        "baudrate": 115200
+    },
+    {
+        "id": 2,
+        "port": "/dev/ttyUSB0",
+        "baudrate": 115200
+    }
+]
