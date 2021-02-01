@@ -2,8 +2,8 @@ import time
 
 import serial
 
-from RPiDevLogger.SETUP import UART_READING_INTERVAL
-from RPiDevLogger.file_writer import FileListWriter
+from SETUP import UART_READING_INTERVAL
+from file_writer import FileListWriter
 
 
 class UartReader:

@@ -2,8 +2,8 @@ import os
 from os import path
 import shutil
 
-from RPiDevLogger import SETUP
-from RPiDevLogger.UartFileManager import UartFileManager
+import SETUP
+from UartFileManager import UartFileManager
 from SETUP import DAT_DIR
 
 

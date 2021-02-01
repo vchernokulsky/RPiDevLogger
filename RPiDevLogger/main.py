@@ -6,14 +6,14 @@ import sys
 import time
 from multiprocessing import Process
 
-from RPiDevLogger.MultipleUarts import MultipleUarts
+from MultipleUarts import MultipleUarts
 from SETUP import *
 from file_manager import FileManager
 from gps_reader import GpsReader
 from logic_reader import LogicReader
 from usb_audio import UsbAudio
 
-from RPiDevLogger.makeFly import make_fly
+from makeFly import make_fly
 
 FREQ = 0
 MIN_MEM_FREE = 1
