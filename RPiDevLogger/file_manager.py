@@ -27,8 +27,11 @@ class FileManager:
         self.min_memory = min_mem
         self.rm_koef = rm_koef
         self.directories = DAT_DIR
-        self.file_template = ['{:02d}_logic.log', '{:02d}_GPS.log', '{:02d}_audio.wav']
-        self.uart_files = UartFileManager(logger)
+        self.max_session = SETUP.MAX_SESSION_ID
+        session_digits = "{:0" + str(len(str(SETUP.MAX_SESSION_ID))) + "d}"
+        self.file_template = ['{}_logic.log'.format(session_digits), '{}_GPS.log'.format(session_digits),
+                              '{}_audio.wav'.format(session_digits)]
+        self.uart_files = UartFileManager(logger, session_digits)
 
     def __memory_enough(self):
         total, used, free = shutil.disk_usage("/")
@@ -41,7 +44,7 @@ class FileManager:
 
     def __clear_memory(self):
         self.logger.info("memory clearing...")
-        for i in range(100):
+        for i in range(self.max_session):
             for dir in self.directories:
                 for file in self.file_template:
                     file_path = path.join(dir, file.format(i))
@@ -72,7 +75,7 @@ class FileManager:
 
     def __get_max_id(self):
         last_session = -1
-        for i in range(99, -1, -1):
+        for i in range(self.max_session, -1, -1):
             id_exist = False
             for dir in self.directories:
                 for file in self.file_template:
@@ -91,7 +94,7 @@ class FileManager:
 
     def __get_min_id(self):
         session_id = -1
-        for i in range(99):
+        for i in range(self.max_session):
             id_exist = False
             for dir in self.directories:
                 for file in self.file_template:
@@ -126,7 +129,7 @@ class FileManager:
 
     def find_session_id(self):
         session_id = self.__get_max_id()
-        if session_id > 99:
+        if session_id > self.max_session:
             self.logger.warning("reached max session id")
             session_id = self.__get_min_id()
             if session_id < 0:

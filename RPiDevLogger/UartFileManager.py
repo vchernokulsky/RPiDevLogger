@@ -5,10 +5,9 @@ from os import path
 
 class UartFileManager:
 
-    template = "{:02d}_uart{}.log"
-
-    def __init__(self, logger):
+    def __init__(self, logger, session_digits):
         self.logger = logger
+        self.template = "{}_uart{}.log".format(session_digits, '{}')
 
     def delete_files(self, session_id, directory):
         file_mask = path.join(directory, self.template.format(session_id, '*'))

@@ -14,6 +14,7 @@ class UartReader:
         self.port = uart_config["port"]
         self.baudrate = uart_config["baudrate"]
         self.file_writer = FileListWriter(uart_config["file_list"])
+        self.logger.info("data from uart {} will be written to files: {}".format(self.port, self.file_writer.file_list))
 
         self.uart = None
         self.is_ok = False
@@ -38,7 +39,7 @@ class UartReader:
 
     def start(self):
         if self.__set_up():
-            self.logger.info("start reading UART_{} on port {}".format(self.id, self.port))
+            self.logger.info("start reading UART_{} on port {} baudrate={}".format(self.id, self.port, self.baudrate))
             try:
                 while True:
                     data = self.__loop()
