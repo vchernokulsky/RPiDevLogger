@@ -1,3 +1,4 @@
+import logging
 import os
 from os import path
 import shutil
@@ -7,8 +8,8 @@ from UartFileManager import UartFileManager
 from SETUP import DAT_DIR
 
 
-def get_free_memory_gb():
-    total, used, free = shutil.disk_usage("/")
+def get_free_memory_gb(storage):
+    total, used, free = shutil.disk_usage(storage)
     return free // (2 ** 30)
 
 
@@ -33,29 +34,56 @@ class FileManager:
                               '{}_audio.wav'.format(session_digits)]
         self.uart_files = UartFileManager(logger, session_digits)
 
-    def __memory_enough(self):
-        total, used, free = shutil.disk_usage("/")
-        self.logger.info("Total: %d GiB" % (total // (2 ** 30)))
-        self.logger.info("Used: %d GiB" % (used // (2 ** 30)))
+    def __group_by_storage(self):
+        result = None
+        storages = {}
+        for cur_dir in self.directories:
+            path_arr = os.path.normpath(cur_dir).split(os.sep)
+
+            if len(path_arr) < 2:
+                self.logger.error("wrong directory %s" % cur_dir)
+                return result
+            if path_arr[0]:
+                self.logger.error("Should use absolute path but %s found" % cur_dir)
+                return result
+
+            storage = os.sep
+            if path_arr[1] == 'media':
+                if len(path_arr) < 4:
+                    self.logger.error("wrong directory %s" % cur_dir)
+                    return result
+                storage = os.path.join(storage, path_arr[1], path_arr[2], path_arr[3])
+
+            if storage in storages:
+                storages[storage].append(cur_dir)
+            else:
+                storages[storage] = [cur_dir]
+        print(storages)
+        return storages
+
+    def __memory_enough(self, storage):
+        total, used, free = shutil.disk_usage(storage)
+        self.logger.info("Total({}): {} GiB".format(storage, total // (2 ** 30)))
+        self.logger.info("Used({}): {} GiB".format(storage, used // (2 ** 30)))
         if free // (2 ** 30) < self.min_memory:
             return False
         else:
             return True
 
-    def __clear_memory(self):
+    def __clear_memory(self, storage, dirs):
         self.logger.info("memory clearing...")
         for i in range(self.max_session):
-            for dir in self.directories:
+            for cur_dir in dirs:
                 for file in self.file_template:
-                    file_path = path.join(dir, file.format(i))
+                    file_path = path.join(cur_dir, file.format(i))
                     if path.isfile(file_path):
                         try:
                             os.remove(file_path)
                         except Exception as e:
                             self.logger.exception(e)
                             return
-                self.uart_files.delete_files(i, dir)
-            if get_free_memory_gb() > self.rm_koef * self.min_memory:
+                self.uart_files.delete_files(i, cur_dir)
+            if get_free_memory_gb(storage) > self.rm_koef * self.min_memory:
                 break
 
     def __check_directory(self, dir):
@@ -118,14 +146,21 @@ class FileManager:
                 return False
         return True
 
-    def check_memory(self):
-        if not self.__memory_enough():
-            self.logger.warning("not enough free space")
-            self.__clear_memory()
-            if not self.__memory_enough():
-                self.logger.error("can not remove enough files")
+    def __check_memory_storage(self, storage, dirs):
+        if not self.__memory_enough(storage):
+            self.logger.warning("not enough free space in storage {}".format(storage))
+            self.__clear_memory(storage, dirs)
+            if not self.__memory_enough(storage):
+                self.logger.error("can not remove enough files in storage {}".format(storage))
                 return False
         return True
+
+    def check_memory(self):
+        storages = self.__group_by_storage()
+        result = True
+        for storage, dirs in storages.items():
+            result = result & self.__check_memory_storage(storage, dirs)
+        return result
 
     def find_session_id(self):
         session_id = self.__get_max_id()
