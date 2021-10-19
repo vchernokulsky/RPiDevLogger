@@ -1,5 +1,6 @@
 class FileListWriter:
-    def __init__(self, file_list):
+    def __init__(self, file_list, logger):
+        self.logger = logger
         self.file_list = file_list
         self.writer_list = []
         self.file_idx = 0
@@ -15,14 +16,23 @@ class FileListWriter:
 
     def create_list(self):
         for name in self.file_list:
-            f = open(name, 'wb', buffering=0)
-            self.writer_list.append(f)
+            try:
+                f = open(name, 'wb', buffering=0)
+                self.writer_list.append(f)
+            except Exception as e:
+                self.logger.exception(e)
         return len(self.writer_list)
 
     def write(self, data):
         for w in self.writer_list:
-            w.write(data)
+            try:
+                w.write(data)
+            except Exception as e:
+                self.logger.exception(e)
 
     def close(self):
         for w in self.writer_list:
-            w.close()
+            try:
+                w.close()
+            except Exception as e:
+                self.logger.exception(e)

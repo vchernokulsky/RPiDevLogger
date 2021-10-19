@@ -13,7 +13,7 @@ class UartReader:
         self.id = uart_config["id"]
         self.port = uart_config["port"]
         self.baudrate = uart_config["baudrate"]
-        self.file_writer = FileListWriter(uart_config["file_list"])
+        self.file_writer = FileListWriter(uart_config["file_list"], logger)
         self.logger.info("data from uart {} will be written to files: {}".format(self.port, self.file_writer.file_list))
 
         self.uart = None

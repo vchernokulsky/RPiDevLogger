@@ -1,4 +1,3 @@
-import logging
 import os
 from os import path
 import shutil
@@ -22,12 +21,15 @@ class FileManager:
     UART_KEYS = ['id', 'port', 'baudrate']
     UART_INT_KEYS = ['id', 'baudrate']
 
-    def __init__(self, logger, min_mem, rm_koef):
+    def __init__(self, logger, min_mem, rm_koef, is_critical=False):
         self.logger = logger
+        self.is_critical = is_critical
 
         self.min_memory = min_mem
         self.rm_koef = rm_koef
-        self.directories = DAT_DIR
+        self.config_directories = DAT_DIR
+        self.directories = []
+
         self.max_session = SETUP.MAX_SESSION_ID
         session_digits = "{:0" + str(len(str(SETUP.MAX_SESSION_ID))) + "d}"
         self.file_template = ['{}_logic.log'.format(session_digits), '{}_GPS.log'.format(session_digits),
@@ -42,16 +44,25 @@ class FileManager:
 
             if len(path_arr) < 2:
                 self.logger.error("wrong directory %s" % cur_dir)
-                return result
+                if self.is_critical:
+                    return result
+                else:
+                    continue
             if path_arr[0]:
                 self.logger.error("Should use absolute path but %s found" % cur_dir)
-                return result
+                if self.is_critical:
+                    return result
+                else:
+                    continue
 
             storage = os.sep
             if path_arr[1] == 'media':
                 if len(path_arr) < 4:
                     self.logger.error("wrong directory %s" % cur_dir)
-                    return result
+                    if self.is_critical:
+                        return result
+                    else:
+                        continue
                 storage = os.path.join(storage, path_arr[1], path_arr[2], path_arr[3])
 
             if storage in storages:
@@ -81,7 +92,8 @@ class FileManager:
                             os.remove(file_path)
                         except Exception as e:
                             self.logger.exception(e)
-                            return
+                            if self.is_critical:
+                                return
                 self.uart_files.delete_files(i, cur_dir)
             if get_free_memory_gb(storage) > self.rm_koef * self.min_memory:
                 break
@@ -90,7 +102,7 @@ class FileManager:
         ret = True
         if not path.isdir(dir):
             try:
-                os.mkdir(dir)
+                os.makedirs(dir)
             except OSError as e:
                 ret = False
                 self.logger.error("Creation of the directory %s failed" % dir)
@@ -140,10 +152,13 @@ class FileManager:
         return session_id
 
     def check_folders(self):
-        for directory in self.directories:
+        for directory in self.config_directories:
             if not self.__check_directory(directory):
                 self.logger.error("fail open directory " + directory)
-                return False
+                if self.is_critical:
+                    return False
+            else:
+                self.directories.append(directory)
         return True
 
     def __check_memory_storage(self, storage, dirs):
@@ -160,7 +175,10 @@ class FileManager:
         result = True
         for storage, dirs in storages.items():
             result = result & self.__check_memory_storage(storage, dirs)
-        return result
+        if self.is_critical:
+            return result
+        else:
+            return True
 
     def find_session_id(self):
         session_id = self.__get_max_id()

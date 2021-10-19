@@ -13,7 +13,7 @@ scan_template = "sigrok-cli --driver {} --scan"
 class LogicReader:
     def __init__(self, logger, file_list, frequency):
         self.logger = logger
-        self.file_writer = FileListWriter(file_list)
+        self.file_writer = FileListWriter(file_list, logger)
         chan_str = ""
         if SALEAE_LOGIC_CHANNELS is not None:
             chan_str = "--channels {} ".format(SALEAE_LOGIC_CHANNELS)

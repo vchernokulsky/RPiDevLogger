@@ -93,7 +93,7 @@ def main():
     logger.info("configuration: {}".format(config))
 
     # ========= CHECK MEMORY =================
-    fm = FileManager(logger, config[keys[MIN_MEM_FREE]], config[keys[RM_KOEF]])
+    fm = FileManager(logger, config[keys[MIN_MEM_FREE]], config[keys[RM_KOEF]], is_critical=False)
     if not fm.check_folders():
         return
     if not fm.check_memory():

@@ -11,7 +11,7 @@ class GpsReader:
         self.is_ok = False
 
         self.gps = None
-        self.file_writer = FileListWriter(file_list)
+        self.file_writer = FileListWriter(file_list, logger)
 
     def __write(self, data):
         if data is not None and len(data) > 0:

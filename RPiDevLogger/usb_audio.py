@@ -80,11 +80,17 @@ class UsbAudio:
 
     def __wave_list_write(self, data):
         for wv in self.wave_list:
-            wv.writeframes(data)
+            try:
+                wv.writeframes(data)
+            except Exception as e:
+                self.logger.exception(e)
 
     def __wave_list_close(self):
         for wv in self.wave_list:
-            wv.close()
+            try:
+                wv.close()
+            except Exception as e:
+                self.logger.exception(e)
 
     def write_to_files(self):
         try:
